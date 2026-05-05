@@ -2,6 +2,8 @@ package com.farm.controller;
 
 import com.farm.dto.FarmerRequestDTO;
 import com.farm.dto.FarmerResponseDTO;
+import com.farm.dto.PagedResponseDTO;
+import com.farm.dto.StateSummaryDTO;
 import com.farm.entity.CropType;
 import com.farm.service.FarmerService;
 import jakarta.validation.Valid;
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -42,6 +46,58 @@ public class FarmerController {
     @GetMapping("/state/{state}")
     public ResponseEntity<List<FarmerResponseDTO>> getFarmersByState(@PathVariable String state) {
         return ResponseEntity.ok(farmerService.getFarmersByState(state));
+    }
+
+    // GET /api/farmers/paged?page=0&size=10&sortBy=name&direction=asc
+    @GetMapping("/paged")
+    public ResponseEntity<PagedResponseDTO<FarmerResponseDTO>> getAllFarmersPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "name") String sortBy,
+            @RequestParam(defaultValue = "asc") String direction) {
+        return ResponseEntity.ok(
+            farmerService.getAllFarmersPaged(page, size, sortBy, direction));
+    }
+
+    // GET /api/farmers/state/{state}/paged?page=0&size=5
+    @GetMapping("/state/{state}/paged")
+    public ResponseEntity<PagedResponseDTO<FarmerResponseDTO>> getFarmersByStatePaged(
+            @PathVariable String state,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
+        return ResponseEntity.ok(
+            farmerService.getFarmersByStatePaged(state, page, size));
+    }
+
+    // CUSTOM JPQL ENDPOINTS
+
+    // GET /api/farmers/search?name=kumar
+    @GetMapping("/search")
+    public ResponseEntity<List<FarmerResponseDTO>> searchByName(
+            @RequestParam String name) {
+        return ResponseEntity.ok(farmerService.searchByName(name));
+    }
+
+    // GET /api/farmers/land-range?min=5&max=20
+    @GetMapping("/land-range")
+    public ResponseEntity<List<FarmerResponseDTO>> getByLandRange(
+            @RequestParam BigDecimal min,
+            @RequestParam BigDecimal max) {
+        return ResponseEntity.ok(farmerService.getFarmersByLandRange(min, max));
+    }
+
+    // GET /api/farmers/filter?state=Maharashtra&cropType=WHEAT
+    @GetMapping("/filter")
+    public ResponseEntity<List<FarmerResponseDTO>> getByStateAndCrop(
+            @RequestParam String state,
+            @RequestParam CropType cropType) {
+        return ResponseEntity.ok(farmerService.getFarmersByStateAndCrop(state, cropType));
+    }
+
+    // GET /api/farmers/summary
+    @GetMapping("/summary")
+    public ResponseEntity<List<StateSummaryDTO>> getStateSummary() {
+        return ResponseEntity.ok(farmerService.getStateSummary());
     }
 
     @PostMapping
